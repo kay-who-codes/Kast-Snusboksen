@@ -1,0 +1,840 @@
+<!DOCTYPE html>
+<html lang="no">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Kast Snusboksen 🎯</title>
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@400;500;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #131313;
+      --bg2: #1c1c1c;
+      --bg3: #252525;
+      --pink: #ff66c7;
+      --green: #42ffad;
+      --text: #f0f0f0;
+      --muted: #888;
+      --border: #2e2e2e;
+      --radius: 16px;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html { font-size: 16px; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'DM Sans', sans-serif;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      overflow-x: hidden;
+    }
+
+    /* ── Background grain ── */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    /* ── Glow blobs ── */
+    .blob {
+      position: fixed;
+      border-radius: 50%;
+      filter: blur(100px);
+      opacity: 0.12;
+      pointer-events: none;
+      z-index: 0;
+    }
+    .blob-1 { width: 400px; height: 400px; background: var(--pink); top: -100px; left: -100px; }
+    .blob-2 { width: 350px; height: 350px; background: var(--green); bottom: -80px; right: -80px; }
+
+    /* ── Container ── */
+    #app {
+      position: relative;
+      z-index: 1;
+      width: 100%;
+      max-width: 560px;
+      padding: 24px 20px 48px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0;
+    }
+
+    /* ── Logo / Header ── */
+    .logo {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: clamp(2.8rem, 10vw, 4.2rem);
+      letter-spacing: 0.04em;
+      text-align: center;
+      line-height: 1;
+      margin-bottom: 4px;
+    }
+    .logo span.pink { color: var(--pink); }
+    .logo span.green { color: var(--green); }
+    .tagline {
+      font-size: 0.85rem;
+      color: var(--muted);
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      margin-bottom: 36px;
+      text-align: center;
+    }
+
+    /* ── Cards ── */
+    .card {
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 28px 24px;
+      width: 100%;
+      animation: fadeUp 0.35s ease both;
+    }
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(20px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    .card-title {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 1.5rem;
+      letter-spacing: 0.05em;
+      color: var(--pink);
+      margin-bottom: 20px;
+    }
+
+    /* ── Setup screen ── */
+    .field { margin-bottom: 20px; }
+    .field label {
+      display: block;
+      font-size: 0.8rem;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 8px;
+    }
+    .field input[type="number"],
+    .field input[type="text"] {
+      width: 100%;
+      background: var(--bg3);
+      border: 1.5px solid var(--border);
+      border-radius: 10px;
+      color: var(--text);
+      font-family: 'DM Sans', sans-serif;
+      font-size: 1rem;
+      padding: 14px 16px;
+      outline: none;
+      transition: border-color 0.2s, box-shadow 0.2s;
+      -webkit-appearance: none;
+    }
+    .field input:focus {
+      border-color: var(--pink);
+      box-shadow: 0 0 0 3px rgba(255, 102, 199, 0.15);
+    }
+
+    /* Player name inputs */
+    #player-names { display: flex; flex-direction: column; gap: 10px; margin-top: 4px; }
+    #player-names input {
+      background: var(--bg3);
+      border: 1.5px solid var(--border);
+      border-radius: 10px;
+      color: var(--text);
+      font-family: 'DM Sans', sans-serif;
+      font-size: 0.95rem;
+      padding: 13px 16px;
+      outline: none;
+      transition: border-color 0.2s, box-shadow 0.2s;
+      width: 100%;
+    }
+    #player-names input:focus {
+      border-color: var(--green);
+      box-shadow: 0 0 0 3px rgba(66, 255, 173, 0.12);
+    }
+
+    /* ── Buttons ── */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      border: none;
+      border-radius: 12px;
+      cursor: pointer;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 1rem;
+      font-weight: 700;
+      letter-spacing: 0.02em;
+      padding: 16px 28px;
+      min-height: 54px;
+      transition: transform 0.15s, box-shadow 0.15s, filter 0.15s;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .btn:active { transform: scale(0.96); }
+
+    .btn-primary {
+      background: var(--pink);
+      color: #131313;
+      width: 100%;
+      margin-top: 8px;
+      box-shadow: 0 4px 24px rgba(255,102,199,0.3);
+    }
+    .btn-primary:hover { filter: brightness(1.1); box-shadow: 0 6px 32px rgba(255,102,199,0.45); }
+
+    .btn-green {
+      background: var(--green);
+      color: #131313;
+      width: 100%;
+      margin-top: 8px;
+      box-shadow: 0 4px 24px rgba(66,255,173,0.25);
+    }
+    .btn-green:hover { filter: brightness(1.05); }
+
+    .btn-ghost {
+      background: transparent;
+      border: 1.5px solid var(--border);
+      color: var(--muted);
+      padding: 12px 20px;
+      min-height: 48px;
+      font-size: 0.9rem;
+    }
+    .btn-ghost:hover { border-color: var(--pink); color: var(--pink); }
+
+    /* ── Game screen ── */
+    .round-info {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 24px;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+    .round-badge {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 1rem;
+      letter-spacing: 0.1em;
+      color: var(--muted);
+    }
+    .round-badge span { color: var(--text); font-size: 1.3rem; }
+
+    /* Progress bar */
+    .progress-track {
+      flex: 1;
+      height: 4px;
+      background: var(--bg3);
+      border-radius: 99px;
+      overflow: hidden;
+      min-width: 80px;
+    }
+    .progress-fill {
+      height: 100%;
+      background: linear-gradient(90deg, var(--pink), var(--green));
+      border-radius: 99px;
+      transition: width 0.4s ease;
+    }
+
+    /* Question card */
+    .question-box {
+      background: var(--bg3);
+      border-left: 3px solid var(--pink);
+      border-radius: 12px;
+      padding: 22px 20px;
+      font-size: clamp(1.05rem, 3.5vw, 1.2rem);
+      line-height: 1.55;
+      margin-bottom: 28px;
+      min-height: 90px;
+      position: relative;
+    }
+    .q-number {
+      font-size: 0.7rem;
+      font-weight: 700;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--pink);
+      display: block;
+      margin-bottom: 8px;
+    }
+
+    /* Who got it? */
+    .who-label {
+      font-size: 0.75rem;
+      font-weight: 700;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 12px;
+    }
+    .player-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+      gap: 10px;
+      margin-bottom: 24px;
+    }
+    .player-btn {
+      background: var(--bg3);
+      border: 1.5px solid var(--border);
+      border-radius: 10px;
+      color: var(--text);
+      font-family: 'DM Sans', sans-serif;
+      font-size: 0.9rem;
+      font-weight: 600;
+      padding: 14px 10px;
+      min-height: 52px;
+      cursor: pointer;
+      transition: border-color 0.15s, background 0.15s, color 0.15s, transform 0.1s;
+      text-align: center;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .player-btn:hover { border-color: var(--pink); color: var(--pink); }
+    .player-btn.selected {
+      background: rgba(255, 102, 199, 0.15);
+      border-color: var(--pink);
+      color: var(--pink);
+    }
+    .player-btn:active { transform: scale(0.95); }
+
+    /* ── Scoreboard ── */
+    .score-list { display: flex; flex-direction: column; gap: 12px; margin-bottom: 24px; }
+    .score-row {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      background: var(--bg3);
+      border-radius: 12px;
+      padding: 14px 18px;
+      position: relative;
+      overflow: hidden;
+      transition: transform 0.2s;
+    }
+    .score-row.top-1 { border: 1.5px solid var(--pink); }
+    .score-row.top-2 { border: 1.5px solid var(--green); }
+
+    .score-bar-bg {
+      position: absolute;
+      inset: 0;
+      border-radius: 12px;
+      opacity: 0.06;
+      transition: width 0.6s ease;
+    }
+    .top-1 .score-bar-bg { background: var(--pink); }
+    .top-2 .score-bar-bg { background: var(--green); }
+
+    .score-rank {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 1.3rem;
+      color: var(--muted);
+      min-width: 22px;
+      text-align: center;
+    }
+    .top-1 .score-rank { color: var(--pink); }
+    .top-2 .score-rank { color: var(--green); }
+
+    .score-name { flex: 1; font-weight: 600; font-size: 1rem; }
+    .score-count {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 1.5rem;
+      color: var(--text);
+      letter-spacing: 0.04em;
+    }
+    .score-label { font-size: 0.7rem; color: var(--muted); display: block; text-align: right; }
+
+    /* Throw animation overlay */
+    .throw-overlay {
+      position: fixed;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-direction: column;
+      gap: 16px;
+      background: rgba(19,19,19,0.85);
+      z-index: 100;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.25s;
+    }
+    .throw-overlay.show { opacity: 1; pointer-events: all; }
+    .throw-emoji {
+      font-size: 5rem;
+      animation: bounce 0.4s ease infinite alternate;
+    }
+    @keyframes bounce {
+      from { transform: translateY(0) rotate(-8deg); }
+      to   { transform: translateY(-18px) rotate(8deg); }
+    }
+    .throw-text {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 2rem;
+      letter-spacing: 0.06em;
+      color: var(--pink);
+      text-align: center;
+    }
+    .throw-sub { font-size: 0.9rem; color: var(--muted); }
+
+    /* ── Sections visibility ── */
+    .screen { display: none; width: 100%; }
+    .screen.active { display: flex; flex-direction: column; align-items: center; width: 100%; }
+
+    /* ── Rules toggle ── */
+    .rules-toggle {
+      font-size: 0.8rem;
+      color: var(--muted);
+      cursor: pointer;
+      text-decoration: underline;
+      margin-top: 12px;
+      text-align: center;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .rules-box {
+      background: var(--bg3);
+      border-radius: 12px;
+      padding: 18px;
+      font-size: 0.85rem;
+      line-height: 1.7;
+      color: #bbb;
+      margin-top: 12px;
+      display: none;
+    }
+    .rules-box.open { display: block; }
+    .rules-box strong { color: var(--pink); }
+
+    /* ── End screen confetti ── */
+    .confetti-wrap {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: 10;
+      overflow: hidden;
+    }
+    .confetti-wrap .piece {
+      position: absolute;
+      top: -20px;
+      width: 10px;
+      height: 10px;
+      border-radius: 2px;
+      animation: fall linear both;
+    }
+    @keyframes fall {
+      to { transform: translateY(110vh) rotate(720deg); opacity: 0; }
+    }
+
+    /* ── Misc ── */
+    .sep { width: 100%; height: 1px; background: var(--border); margin: 20px 0; }
+    .mt16 { margin-top: 16px; }
+    .btn-row { display: flex; gap: 10px; width: 100%; }
+    .btn-row .btn { flex: 1; }
+
+    /* ── Responsive tweaks ── */
+    @media (max-width: 400px) {
+      .player-grid { grid-template-columns: repeat(auto-fill, minmax(110px, 1fr)); }
+      .card { padding: 22px 16px; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="blob blob-1"></div>
+<div class="blob blob-2"></div>
+
+<div id="app">
+  <div class="logo">
+    KAST <span class="pink">SNUS</span><span class="green">BOKSEN</span>
+  </div>
+  <p class="tagline">The Norwegian pre-game classic 🎯</p>
+
+  <!-- ═══════════════ SETUP SCREEN ═══════════════ -->
+  <section id="screen-setup" class="screen active">
+    <div class="card" style="animation-delay:0.05s">
+      <div class="card-title">⚙️ Game Setup</div>
+
+      <div class="field">
+        <label>Number of players</label>
+        <input type="number" id="num-players" min="2" max="20" value="4" placeholder="2 – 20" />
+      </div>
+
+      <div class="field" id="names-field">
+        <label>Player names</label>
+        <div id="player-names"></div>
+      </div>
+
+      <div class="field">
+        <label>Number of questions / rounds</label>
+        <input type="number" id="num-rounds" min="1" max="200" value="20" placeholder="1 – 200" />
+      </div>
+
+      <button class="btn btn-primary" id="btn-start">🎯 Start the game!</button>
+
+      <p class="rules-toggle" id="toggle-rules">Show rules ▾</p>
+      <div class="rules-box" id="rules-box">
+        <strong>How to play:</strong><br/>
+        1. Everyone sits in a circle.<br/>
+        2. Read the question out loud.<br/>
+        3. Throw the snus tin to the person who fits the statement best.<br/>
+        4. The person who receives the tin throws it to start the next round.<br/>
+        <strong>Bad catch:</strong> Can't catch a good throw? Drink three sips! 🍺<br/>
+        <strong>Cheers:</strong> Every 10th question – everyone drinks together! 🥂
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════════════ GAME SCREEN ═══════════════ -->
+  <section id="screen-game" class="screen">
+    <div class="card">
+      <div class="round-info">
+        <div class="round-badge">ROUND <span id="current-round">1</span>/<span id="total-rounds">20</span></div>
+        <div class="progress-track">
+          <div class="progress-fill" id="progress-fill" style="width:0%"></div>
+        </div>
+      </div>
+
+      <div class="question-box">
+        <span class="q-number" id="q-number">SPØRSMÅL #1</span>
+        <span id="question-text">Loading...</span>
+      </div>
+
+      <div class="who-label">🎯 Who does this fit?</div>
+      <div class="player-grid" id="player-grid"></div>
+
+      <div class="btn-row">
+        <button class="btn btn-ghost" id="btn-skip">↩ Skip</button>
+        <button class="btn btn-green" id="btn-next" disabled>Next →</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════════════ END SCREEN ═══════════════ -->
+  <section id="screen-end" class="screen">
+    <div class="card">
+      <div class="card-title">🏆 Final Results</div>
+      <div class="score-list" id="score-list"></div>
+      <div class="sep"></div>
+      <div class="btn-row">
+        <button class="btn btn-ghost" id="btn-replay">🔄 More rounds</button>
+        <button class="btn btn-primary" id="btn-newgame">🏠 New game</button>
+      </div>
+    </div>
+  </section>
+
+</div>
+
+<!-- Throw overlay -->
+<div class="throw-overlay" id="throw-overlay">
+  <div class="throw-emoji">📦</div>
+  <div class="throw-text" id="throw-text">KAST BOKSEN!</div>
+  <div class="throw-sub" id="throw-sub"></div>
+</div>
+
+<!-- Confetti -->
+<div class="confetti-wrap" id="confetti-wrap"></div>
+
+<script>
+  // ──────────────────────────────────────────────
+  //  QUESTIONS  (Norwegian, grouped by spiciness)
+  // ──────────────────────────────────────────────
+  const QUESTIONS = [
+    // Social / personality
+    "Who is most likely to get drunk on one beer?",
+    "Who is most likely to dance on the table tonight?",
+    "Who has the most exes?",
+    "Who is the best at keeping secrets?",
+    "Who is the biggest drama queen/king in the group?",
+    "Who is most likely to fall asleep at the party?",
+    "Who is always the last to go to bed?",
+    "Who is most likely to crash a party they weren't invited to?",
+    "Who is most likely to forget your birthday?",
+    "Who always says 'just one more round'?",
+    "Who is the most dominant personality in the group?",
+    "Who is best at keeping everyone in check?",
+    "Who is the worst at replying to messages?",
+    "Who apologises the most?",
+    "Who is the happiest person in the group?",
+    "Who always needs to be right?",
+    "Who is most likely to say yes to something crazy?",
+    "Who stays calmest under pressure?",
+    "Who is the worst liar?",
+    "Who is the best friend to call at 3am?",
+    // Fun / silly
+    "Who would survive longest in the apocalypse?",
+    "Who would win a reality survival show?",
+    "Who would go on a dating reality show?",
+    "Who is most likely to become famous?",
+    "Who will become a burnt-out hipster?",
+    "Who is most likely to marry a stranger?",
+    "Who would steal a funny road sign?",
+    "Who is most likely to lose their phone tonight?",
+    "Who is worst at navigating without Google Maps?",
+    "Who will move abroad and never come back?",
+    // Skill-based
+    "Who is the best cook?",
+    "Who is best in bed?",
+    "Who is the best driver?",
+    "Who is the best at flirting?",
+    "Who is the best at doing makeup?",
+    "Who sings the best?",
+    "Who dances the best?",
+    "Who is the best at giving a speech?",
+    "Who is the best at resolving conflicts?",
+    "Who is the smartest in the group?",
+    // Relationships / gossip
+    "Who is most likely to have a secret crush right now?",
+    "Who is most likely to kiss someone tonight?",
+    "Who is most likely to drunk-text an ex?",
+    "Who is most likely to get jealous?",
+    "Who flirts the most without meaning it?",
+    "Who gives the best relationship advice?",
+    "Who is the most romantic?",
+    "Who is the least romantic?",
+    // Dark humor / edge
+    "Who is most likely to end up on the front page of the news?",
+    "Who is most likely to have a secret alias?",
+    "Who is the laziest?",
+    "Who is best at avoiding responsibility?",
+    "Who spends the most time in the bathroom?",
+    "Who is the worst at saving money?",
+    "Who spends the most money on nonsense?",
+    "Who cares least about their health?",
+    // Life observations
+    "Who always shows up fashionably late?",
+    "Who is the most competitive?",
+    "Who would binge-watch a whole series in one day?",
+    "Who cries at TV commercials?",
+    "Who sleeps with the window open even in winter?",
+    "Who spends the most time on their phone?",
+    // Extra fun
+    "Who is the most convincing liar?",
+    "Who is most likely to skip the queue?",
+    "Who is most likely to fake being sick to skip work?",
+    "Who is the biggest mummy's boy / daddy's girl?",
+    "Who is the quickest to say sorry?",
+    "Who is the real life of the party?",
+    "Who needs the most attention?",
+    "Who says 'I'M NOT EVEN DRUNK' the loudest?",
+    "Who is the quiet type that surprises everyone?",
+    "Who is the sharpest in the group?",
+  ];
+
+  // ──────────────────────────────────────────────
+  //  STATE
+  // ──────────────────────────────────────────────
+  let players = [];
+  let scores  = {};
+  let rounds  = 20;
+  let currentRound = 0;
+  let usedQuestions = [];
+  let shuffled = [];
+  let selectedPlayer = null;
+
+  // ──────────────────────────────────────────────
+  //  HELPERS
+  // ──────────────────────────────────────────────
+  function shuffle(arr) {
+    const a = [...arr];
+    for (let i = a.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [a[i], a[j]] = [a[j], a[i]];
+    }
+    return a;
+  }
+
+  function showScreen(id) {
+    document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+    document.getElementById(id).classList.add('active');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  // ──────────────────────────────────────────────
+  //  SETUP
+  // ──────────────────────────────────────────────
+  const numPlayersInput = document.getElementById('num-players');
+  const playerNamesDiv  = document.getElementById('player-names');
+
+  function buildNameInputs() {
+    const n = Math.min(20, Math.max(2, parseInt(numPlayersInput.value) || 2));
+    playerNamesDiv.innerHTML = '';
+    for (let i = 0; i < n; i++) {
+      const inp = document.createElement('input');
+      inp.type = 'text';
+      inp.placeholder = `Player ${i + 1}`;
+      inp.maxLength = 20;
+      inp.value = playerNamesDiv.children[i]?.value || '';
+      playerNamesDiv.appendChild(inp);
+    }
+  }
+
+  numPlayersInput.addEventListener('input', buildNameInputs);
+  buildNameInputs();
+
+  document.getElementById('toggle-rules').addEventListener('click', () => {
+    const box = document.getElementById('rules-box');
+    const tog = document.getElementById('toggle-rules');
+    box.classList.toggle('open');
+    tog.textContent = box.classList.contains('open') ? 'Hide rules ▲' : 'Show rules ▾';
+  });
+
+  document.getElementById('btn-start').addEventListener('click', () => {
+    const n = Math.min(20, Math.max(2, parseInt(numPlayersInput.value) || 2));
+    const inputs = playerNamesDiv.querySelectorAll('input');
+    players = [];
+    inputs.forEach((inp, i) => {
+      const val = inp.value.trim();
+      players.push(val || `Player ${i + 1}`);
+    });
+    rounds = Math.min(200, Math.max(1, parseInt(document.getElementById('num-rounds').value) || 20));
+    scores = {};
+    players.forEach(p => scores[p] = 0);
+    currentRound = 0;
+    shuffled = shuffle(QUESTIONS);
+    startRound();
+  });
+
+  // ──────────────────────────────────────────────
+  //  GAME
+  // ──────────────────────────────────────────────
+  function startRound() {
+    if (currentRound >= rounds) { showEndScreen(); return; }
+
+    selectedPlayer = null;
+    document.getElementById('btn-next').disabled = true;
+
+    // question
+    const qIndex = currentRound % shuffled.length;
+    if (currentRound > 0 && qIndex === 0) shuffled = shuffle(QUESTIONS); // re-shuffle if we loop
+
+    const q = shuffled[qIndex];
+    document.getElementById('q-number').textContent = `QUESTION #${currentRound + 1}`;
+    document.getElementById('question-text').textContent = q;
+    document.getElementById('current-round').textContent = currentRound + 1;
+    document.getElementById('total-rounds').textContent = rounds;
+
+    const pct = (currentRound / rounds) * 100;
+    document.getElementById('progress-fill').style.width = pct + '%';
+
+    buildPlayerGrid();
+    showScreen('screen-game');
+
+    // skål every 10th
+    if (currentRound > 0 && currentRound % 10 === 0) {
+      showThrowOverlay('🥂 CHEERS!', 'Everyone drinks!', 2000);
+    }
+  }
+
+  function buildPlayerGrid() {
+    const grid = document.getElementById('player-grid');
+    grid.innerHTML = '';
+    players.forEach(p => {
+      const btn = document.createElement('button');
+      btn.className = 'player-btn';
+      btn.textContent = p;
+      btn.addEventListener('click', () => selectPlayer(p, btn));
+      grid.appendChild(btn);
+    });
+  }
+
+  function selectPlayer(name, btn) {
+    document.querySelectorAll('.player-btn').forEach(b => b.classList.remove('selected'));
+    btn.classList.add('selected');
+    selectedPlayer = name;
+    document.getElementById('btn-next').disabled = false;
+    // mini throw animation
+    showThrowOverlay(`📦 THROW IT TO ${name.toUpperCase()}!`, 'Toss the snus tin!', 1200);
+  }
+
+  document.getElementById('btn-next').addEventListener('click', () => {
+    if (!selectedPlayer) return;
+    scores[selectedPlayer]++;
+    currentRound++;
+    startRound();
+  });
+
+  document.getElementById('btn-skip').addEventListener('click', () => {
+    currentRound++;
+    startRound();
+  });
+
+  // ──────────────────────────────────────────────
+  //  THROW OVERLAY
+  // ──────────────────────────────────────────────
+  let throwTimer = null;
+  function showThrowOverlay(title, sub, duration) {
+    const ov = document.getElementById('throw-overlay');
+    document.getElementById('throw-text').textContent = title;
+    document.getElementById('throw-sub').textContent = sub;
+    ov.classList.add('show');
+    if (throwTimer) clearTimeout(throwTimer);
+    throwTimer = setTimeout(() => ov.classList.remove('show'), duration);
+  }
+  document.getElementById('throw-overlay').addEventListener('click', () => {
+    document.getElementById('throw-overlay').classList.remove('show');
+  });
+
+  // ──────────────────────────────────────────────
+  //  END SCREEN
+  // ──────────────────────────────────────────────
+  function showEndScreen() {
+    const sorted = [...players].sort((a, b) => scores[b] - scores[a]);
+    const list = document.getElementById('score-list');
+    list.innerHTML = '';
+    sorted.forEach((p, i) => {
+      const row = document.createElement('div');
+      row.className = 'score-row' + (i === 0 ? ' top-1' : i === 1 ? ' top-2' : '');
+      const maxScore = scores[sorted[0]] || 1;
+      const pct = (scores[p] / maxScore) * 100;
+      row.innerHTML = `
+        <div class="score-bar-bg" style="width:${pct}%"></div>
+        <div class="score-rank">${i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : (i + 1)}</div>
+        <div class="score-name">${p}</div>
+        <div>
+          <div class="score-count">${scores[p]}</div>
+          <div class="score-label">times chosen</div>
+        </div>
+      `;
+      list.appendChild(row);
+    });
+    showScreen('screen-end');
+    spawnConfetti();
+    showThrowOverlay('🎉 GAME OVER!', `Congratulations to ${sorted[0]}!`, 2500);
+  }
+
+  document.getElementById('btn-newgame').addEventListener('click', () => showScreen('screen-setup'));
+  document.getElementById('btn-replay').addEventListener('click', () => {
+    scores = {};
+    players.forEach(p => scores[p] = 0);
+    currentRound = 0;
+    shuffled = shuffle(QUESTIONS);
+    startRound();
+  });
+
+  // ──────────────────────────────────────────────
+  //  CONFETTI
+  // ──────────────────────────────────────────────
+  function spawnConfetti() {
+    const wrap = document.getElementById('confetti-wrap');
+    wrap.innerHTML = '';
+    const colors = ['#ff66c7','#42ffad','#fff','#ffdd57','#7eb3ff'];
+    for (let i = 0; i < 80; i++) {
+      const piece = document.createElement('div');
+      piece.className = 'piece';
+      piece.style.cssText = `
+        left: ${Math.random()*100}%;
+        background: ${colors[Math.floor(Math.random()*colors.length)]};
+        width: ${6 + Math.random()*8}px;
+        height: ${6 + Math.random()*8}px;
+        border-radius: ${Math.random() > 0.5 ? '50%' : '2px'};
+        animation-duration: ${1.5 + Math.random()*2}s;
+        animation-delay: ${Math.random()*0.8}s;
+        opacity: ${0.7 + Math.random()*0.3};
+      `;
+      wrap.appendChild(piece);
+    }
+    setTimeout(() => { wrap.innerHTML = ''; }, 4000);
+  }
+</script>
+</body>
+</html>
